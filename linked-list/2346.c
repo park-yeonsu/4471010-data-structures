@@ -66,19 +66,14 @@ int main() {
         struct Node *prev_node = current->prev;
         
         // Remove current node from the list
-        if (current->next == current) {
-            // Only one node left
-            head = NULL;
-        } else {
-            next_node->prev = prev_node;
-            prev_node->next = next_node;
-            
-            // Update head if removing the head
-            if (current == head) {
-                head = next_node;
-            }
+        next_node->prev = prev_node;
+        prev_node->next = next_node;
+
+        // Update head if removing the head
+        if (current == head) {
+            head = next_node;
         }
-        
+
         // Free the removed node
         struct Node *to_delete = current;
         

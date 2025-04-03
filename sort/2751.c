@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define kMaxSize 1000000
-
 void Merge(int arr[], int left, int mid, int right, int temp[]) {
   int i = left;
   int j = mid + 1;

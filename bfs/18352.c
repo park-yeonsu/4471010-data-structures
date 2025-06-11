@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const char WHITE = 'W';
+const char GRAY = 'G';
+const char BLACK = 'B';
+
 typedef struct AdjListNode {
     int dest_city;
     struct AdjListNode* next_node;
@@ -139,37 +143,51 @@ int main() {
         AddEdge(road_network, city_a, city_b);
     }
 
+    char* color = (char*)malloc((num_cities + 1) * sizeof(char));
     int* distances = (int*)malloc((num_cities + 1) * sizeof(int));
-    if (distances == NULL) {
+    int* predecessor = (int*)malloc((num_cities + 1) * sizeof(int));
+
+    if (color == NULL || distances == NULL || predecessor == NULL) {
         FreeGraph(road_network);
-        perror("Failed to allocate memory for distances array");
+        if (color) free(color);
+        if (distances) free(distances);
+        if (predecessor) free(predecessor);
+        perror("Failed to allocate memory for BFS arrays");
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i <= num_cities; ++i) {
-        distances[i] = -1;
+
+    for (int u = 1; u <= num_cities; ++u) {
+        color[u] = WHITE;
+        distances[u] = -1;
+        predecessor[u] = -1;
     }
 
     Queue* city_queue = CreateQueue(num_cities);
 
+    color[start_city_id] = GRAY;
     distances[start_city_id] = 0;
+    predecessor[start_city_id] = -1;
     Enqueue(city_queue, start_city_id);
 
     while (!IsQueueEmpty(city_queue)) {
-        int current_city_id = Dequeue(city_queue);
+        int u = Dequeue(city_queue);
 
-        AdjListNode* current_neighbor_node = road_network->adj_lists_array[current_city_id].head_node;
-        while (current_neighbor_node != NULL) {
-            int neighbor_city_id = current_neighbor_node->dest_city;
-            if (distances[neighbor_city_id] == -1) {
-                distances[neighbor_city_id] = distances[current_city_id] + 1;
-                Enqueue(city_queue, neighbor_city_id);
+        AdjListNode* v_node = road_network->adj_lists_array[u].head_node;
+        while (v_node != NULL) {
+            int v = v_node->dest_city;
+            
+            if (color[v] == WHITE) {
+                color[v] = GRAY;
+                distances[v] = distances[u] + 1;
+                predecessor[v] = u;
+                Enqueue(city_queue, v);
             }
-            current_neighbor_node = current_neighbor_node->next_node;
+            v_node = v_node->next_node;
         }
+        color[u] = BLACK;
     }
 
     int found_city_at_target_distance = 0;
-
     for (int i = 1; i <= num_cities; ++i) {
         if (distances[i] == target_distance) {
             printf("%d\n", i);
@@ -182,7 +200,9 @@ int main() {
     }
 
     FreeGraph(road_network);
+    free(color);
     free(distances);
+    free(predecessor);
     FreeQueue(city_queue);
 
     return 0;
